@@ -1,107 +1,236 @@
 <!DOCTYPE html>
 <html>
-<style>
-.slidecontainer {
-  width: 100%;
-}
-
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  border-radius: 5px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider:hover {
-  opacity: 1;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #800000;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #800000;
-  cursor: pointer;
-}
-
-input[type="file"] {
-    display: none;
-}
-
-.red-button {
-  width: 140px;
-  background-color: #cc0000;
-  color: white;
-  text-align: center;
-  display: inline-block;
-  font-size: 16px;
-  padding: 14px 0px;
-  margin: 0px 4px 16px;
-  border-radius: 8px;
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-  cursor: pointer;
-  border: 2px solid #800000;
-}
-.red-button:hover {
-	box-shadow: none;
-}
-
-th, td {
-  padding: 10px 4px;
-  text-align:left;
-}
-
-body{
-  background:#f2f2f2;
-  font-family:Arial, Helvetica, sans-serif;
-}
-
-</style>	
 <head>
+	<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    input[type="file"] {
+        display: none;
+    }
+
+    .red-button {
+      width: 140px;
+      background-color: #cc0000;
+      color: white;
+      text-align: center;
+      display: inline-block;
+      font-size: 16px;
+      padding: 14px 0px;
+      margin: 0px 4px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+      cursor: pointer;
+      border: 2px solid #800000;
+    }
+    .red-button:hover {
+      box-shadow: none;
+    }
+
+    th, td {
+      padding: 10px 4px;
+      text-align: left;
+    }
+
+    body {
+      background: #f2f2f2;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+  </style>
 </head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <body>
-	<div style="max-width: 100%; margin: 8px; text-align:center;">
-		<h1>Smart E-Paper Frame</h1>
-		
-		<label class="red-button">
-			<input type="file"  id="inputFile"/>Load Image
-		</label>
-		<button class="red-button" onclick="dither()">Dither</button>
-		<button class="red-button" onclick="stretchToFit()">Stretch to Fit</button>
-		</br>
-		
-		<div  style="width: 100%; display: none;" >
-			<canvas style="width: 100%;" width="800" height="480" id="originalCanvas"/>
-		</div>
-		<div style="width: 100%; border: 3px solid black; border-radius: 5px; background:white;" >
-			<canvas style="width: 100%;" width="800" height="480"  id="editedCanvas"/>
-		</div>
-		<td>Size: <span id="sizeLevel"></span></td>
-			<td>
-				<div class="slidecontainer">
-					<input type="range" min="1" max="100" value="50" class="slider" id="rangeSize">
-				</div>
-			</td>
-		<button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Upload to Frame</button>
+  <div style="max-width: 100%; margin: 8px; text-align:center;">
+  <h1>Porta-Retrato Digital</h1>
+
+  <!-- Somente o botão de upload aqui -->
+  <label class="red-button">
+    <input type="file" id="inputFile"/>Carregar imagem
+  </label>
+
+  <!-- CANVAS -->
+  <div style="width: 100%; display: none;">
+    <canvas style="width: 100%;" width="800" height="480" id="originalCanvas"></canvas>
+  </div>
+  <div style="width: 100%; border: 3px solid black; border-radius: 5px; background:white; margin-top: 16px;">
+    <canvas style="width: 100%;" width="800" height="480" id="editedCanvas"></canvas>
+  </div>
+
+  <!-- BOTÕES abaixo do canvas -->
+  <div style="margin-top: 16px;">
+    <button class="red-button" onclick="dither()">Dither</button>
+    <button class="red-button" onclick="stretchToFit()">Esticar para caber</button>
+    <button class="red-button" onclick="zoomImage(1.1)">Zoom In</button>
+    <button class="red-button" onclick="zoomImage(0.9)">Zoom Out</button>
+    <button class="red-button" onclick="rotateImage(-90)">⟲ Rotacionar Esquerda</button>
+    <button class="red-button" onclick="rotateImage(90)">⟳ Rotacionar Direita</button>
+
+    <!-- D-Pad -->
+    <style>
+  .dpad-container {
+    display: inline-grid;
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px 60px;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin: 12px 0;
+  }
+  .dpad-up {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+  .dpad-left {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+  }
+  .dpad-right {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+  }
+  .dpad-down {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+  }
+	</style>
+
+	<div class="dpad-container">
+	  <button class="red-button dpad-up" onclick="moveImage(0, -10)">⬆</button>
+	  <button class="red-button dpad-left" onclick="moveImage(-10, 0)">⬅</button>
+	  <button class="red-button dpad-right" onclick="moveImage(10, 0)">➡</button>
+	  <button class="red-button dpad-down" onclick="moveImage(0, 10)">⬇</button>
 	</div>
 
-<script>
+  <!-- Botão final: Enviar -->
+  <button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Enviar para porta-retrato</button>
+</div>
+
+
+  <script>
+    let currentScale = 1.0;
+    let originalImage = null;
+	let currentRotation = 0; // in degrees
+	let offsetX = 0;
+	let offsetY = 0;
+
+const input = document.getElementById('inputFile');
+input.addEventListener('change', handleFiles);
+
+function handleFiles(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const img = new Image();
+  img.onload = function () {
+    originalImage = img;    // set global once loaded
+    currentScale = 1.0;
+    currentRotation = 0;
+    offsetX = 0;
+    offsetY = 0;
+    drawImage(originalImage, currentScale);
+  };
+  img.src = URL.createObjectURL(file);  // set src AFTER onload handler
+}
+
+function drawImage(img, scale) {
+  const ctxOrigin = document.getElementById('originalCanvas').getContext('2d');
+  const ctxEdited = document.getElementById('editedCanvas').getContext('2d');
+  const canvasWidth = 800;
+  const canvasHeight = 480;
+
+  ctxOrigin.save();
+  ctxEdited.save();
+
+  ctxOrigin.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+  ctxEdited.setTransform(1, 0, 0, 1, 0, 0);
+
+  ctxOrigin.clearRect(0, 0, canvasWidth, canvasHeight);
+  ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  ctxOrigin.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
+  ctxEdited.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
+
+  const radians = currentRotation * Math.PI / 180;
+  ctxOrigin.rotate(radians);
+  ctxEdited.rotate(radians);
+
+  const scaledWidth = img.width * scale;
+  const scaledHeight = img.height * scale;
+
+  ctxOrigin.drawImage(img, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
+  ctxEdited.drawImage(img, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
+
+  ctxOrigin.restore();
+  ctxEdited.restore();
+}
+
+// Example usage in zoomImage (same for rotateImage, moveImage)
+function zoomImage(factor) {
+  if (!originalImage) {
+    alert("Por favor, envie uma imagem primeiro!");
+    return;
+  }
+  currentScale *= factor;
+  drawImage(originalImage, currentScale);
+}
+
+// For functions like stretchToFit(), just use originalImage directly instead of creating new Image objects:
+function stretchToFit() {
+  if (!originalImage) {
+    alert("Por favor, envie uma imagem primeiro!");
+    return;
+  }
+
+  const canvas = document.getElementById('editedCanvas');
+  const ctx = canvas.getContext('2d');
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  // Fit image to canvas
+  const scaleWidth = canvasWidth / originalImage.width;
+  const scaleHeight = canvasHeight / originalImage.height;
+  const scale = Math.min(scaleWidth, scaleHeight);
+  const newWidth = originalImage.width * scale;
+  const newHeight = originalImage.height * scale;
+
+  // Apply rotation and center
+  ctx.translate(canvasWidth / 2, canvasHeight / 2);
+  const radians = currentRotation * Math.PI / 180;
+  ctx.rotate(radians);
+
+  ctx.drawImage(
+    originalImage,
+    -newWidth / 2,
+    -newHeight / 2,
+    newWidth,
+    newHeight
+  );
+
+  ctx.restore();
+}
+
+
+	function rotateImage(degrees) {
+	  if (!originalImage) {
+		alert("Por favor, envie uma imagem primeiro!");
+		return;
+	  }
+	  currentRotation = (currentRotation + degrees) % 360;
+	  drawImage(originalImage, currentScale);
+	}
+	
+	function moveImage(dx, dy) {
+	  if (!originalImage) {
+		alert("Por favor, envie uma imagem primeiro!");
+		return;
+	  }
+	  offsetX += dx;
+	  offsetY += dy;
+	  drawImage(originalImage, currentScale);
+	}
+
 
 // Map colors to their 7-bit indices
 const COLOR_MAP = {
@@ -167,7 +296,7 @@ var PALETTE = [
 			sendImage();
 		}
 		else if(evt.data == "BUSY"){
-			alert("The frame is busy - Can't load new image");
+			alert("O porta-retrato está ocupado - Aguarde para enviar nova imagem");
 			websocket.close();
 		}
 		else{
@@ -271,34 +400,6 @@ function dither() {
     ctx.putImageData(imgData, 0, 0);
 }
 
-var input = document.getElementById('inputFile');
-	input.addEventListener('change', handleFiles);
-
-	/*load the file to the two canvases*/
-	function handleFiles(e) {
-		var ctxOrigin = document.getElementById('originalCanvas').getContext('2d');
-		var ctxEdited = document.getElementById('editedCanvas').getContext('2d');
-		var img = new Image();
-		img.src = URL.createObjectURL(e.target.files[0]);
-		img.onload = function () {
-			const canvasWidth = 800;
-			const canvasHeight = 480;
-
-			// Clear the canvas and fill it with white
-			ctxOrigin.fillStyle = "white";
-			ctxOrigin.fillRect(0, 0, canvasWidth, canvasHeight);
-			ctxEdited.fillStyle = "white";
-			ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
-
-			// Calculate centered position without scaling
-			const offsetX = (canvasWidth - img.width) / 2;
-			const offsetY = (canvasHeight - img.height) / 2;
-
-			// Draw the image centered without stretching
-			ctxOrigin.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, img.width, img.height);
-			ctxEdited.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, img.width, img.height);
-		};
-	}
 	
 	document.getElementById('rangeSize').addEventListener('input', function () {
 		const sliderValue = this.value; // Get slider value
@@ -309,7 +410,7 @@ var input = document.getElementById('inputFile');
 			: null;
 
 		if (!img.src) {
-			alert("Please upload an image first!");
+			alert("Por favor, envie uma imagem primeiro!");
 			return;
 		}
 
@@ -337,46 +438,6 @@ var input = document.getElementById('inputFile');
 			ctxEdited.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, newWidth, newHeight);
 		};
 	});
-
-function stretchToFit() {
-    const ctxEdited = document.getElementById('editedCanvas').getContext('2d');
-    const img = new Image();
-    img.src = document.getElementById('inputFile').files[0]
-        ? URL.createObjectURL(document.getElementById('inputFile').files[0])
-        : null;
-
-    if (!img.src) {
-        alert("Please upload an image first!");
-        return;
-    }
-
-    img.onload = function () {
-        const canvasWidth = 800;
-        const canvasHeight = 480;
-
-        // Clear the canvas and fill it with white
-        ctxEdited.fillStyle = "white";
-        ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
-
-        // Calculate scaling factors for width and height
-        const scaleWidth = canvasWidth / img.width;
-        const scaleHeight = canvasHeight / img.height;
-
-        // Use the smaller scale factor to maintain aspect ratio
-        const scale = Math.min(scaleWidth, scaleHeight);
-
-        // Calculate the new dimensions of the image
-        const newWidth = img.width * scale;
-        const newHeight = img.height * scale;
-
-        // Center the scaled image on the canvas
-        const offsetX = (canvasWidth - newWidth) / 2;
-        const offsetY = (canvasHeight - newHeight) / 2;
-
-        // Draw the image with maintained proportions
-        ctxEdited.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, newWidth, newHeight);
-    };
-}
 
 </script>
 </body>
