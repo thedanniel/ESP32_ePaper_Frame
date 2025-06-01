@@ -90,8 +90,6 @@ void setup() {
 
   vTaskSuspend(Task1);
 
-  Clear(EPD_7IN3F_WHITE);
-
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_credentials.ssid, wifi_credentials.password);
   Serial.print("Connecting to WiFi ..");
@@ -110,7 +108,7 @@ void setup() {
   // handle GET requests to route /index.html
   server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("Request recived: GET /index.html");
-    request->send(SPIFFS, "/index.html", "text/html");
+    request->send(SPIFFS, "/index.html", "text/html; charset=utf-8");
   });
 
   // handle GET requests to route /
