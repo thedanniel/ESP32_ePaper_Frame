@@ -57,6 +57,7 @@
   <!-- BOTÕES abaixo do canvas -->
   <div style="margin-top: 16px;">
     <button class="red-button" onclick="dither()">Dither</button>
+	<button class="red-button" onclick="convert()">Converter cores</button>
     <button class="red-button" onclick="stretchToFit()">Esticar para caber</button>
     <button class="red-button" onclick="zoomImage(1.1)">Aumentar</button>
     <button class="red-button" onclick="zoomImage(0.9)">Diminuir</button>
@@ -378,46 +379,102 @@ function addToPixel(pixels, pos, quant_error, fraction) {
     }
 }
 
+function redrawToEditedCanvas() {
+  const ctxEdited = document.getElementById('editedCanvas').getContext('2d');
+  const canvasWidth = 800;
+  const canvasHeight = 480;
+
+  ctxEdited.save();
+  ctxEdited.setTransform(1, 0, 0, 1, 0, 0);
+  ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  // Fill white background
+  ctxEdited.fillStyle = "white";
+  ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  ctxEdited.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
+  const radians = currentRotation * Math.PI / 180;
+  ctxEdited.rotate(radians);
+
+  const scaledWidth = originalImage.width * currentScale;
+  const scaledHeight = originalImage.height * currentScale;
+
+  ctxEdited.drawImage(originalImage, -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
+  ctxEdited.restore();
+}
+
+
 function dither() {
-	if (!originalImage) {
-		alert("Por favor, envie uma imagem primeiro!");
-		return;
-	 }
-    const R = 0, G = 1, B = 2, A = 3;
-    const width = 800, height = 480;
+  if (!originalImage) {
+    alert("Por favor, envie uma imagem primeiro!");
+    return;
+  }
 
-    const ctx = document.getElementById('editedCanvas').getContext('2d');
-    const imgData = ctx.getImageData(0, 0, width, height);
-    const pixels = imgData.data;
+  redrawToEditedCanvas();
 
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const pos = (y * width + x) * 4;
-            const oldR = pixels[pos + R];
-            const oldG = pixels[pos + G];
-            const oldB = pixels[pos + B];
-            
-            const newRGB = find_closest_palette_color(oldR, oldG, oldB);
-            pixels[pos + R] = newRGB[0];
-            pixels[pos + G] = newRGB[1];
-            pixels[pos + B] = newRGB[2];
-            pixels[pos + A] = 255; // Fully opaque
+  const R = 0, G = 1, B = 2, A = 3;
+  const width = 800, height = 480;
 
-            const quant_error = [
-                oldR - newRGB[0],
-                oldG - newRGB[1],
-                oldB - newRGB[2]
-            ];
+  const ctx = document.getElementById('editedCanvas').getContext('2d');
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const pixels = imgData.data;
 
-            // Error diffusion
-            addToPixel(pixels, pos + 4, quant_error, 7.0 / 16); // Right
-            addToPixel(pixels, pos - 4 + (width * 4), quant_error, 3.0 / 16); // Bottom-left
-            addToPixel(pixels, pos + (width * 4), quant_error, 5.0 / 16); // Bottom
-            addToPixel(pixels, pos + 4 + (width * 4), quant_error, 1.0 / 16); // Bottom-right
-        }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pos = (y * width + x) * 4;
+      const oldR = pixels[pos + R];
+      const oldG = pixels[pos + G];
+      const oldB = pixels[pos + B];
+
+      const newRGB = find_closest_palette_color(oldR, oldG, oldB);
+      pixels[pos + R] = newRGB[0];
+      pixels[pos + G] = newRGB[1];
+      pixels[pos + B] = newRGB[2];
+      pixels[pos + A] = 255;
+
+      const quant_error = [
+        oldR - newRGB[0],
+        oldG - newRGB[1],
+        oldB - newRGB[2]
+      ];
+
+      addToPixel(pixels, pos + 4, quant_error, 7.0 / 16);
+      addToPixel(pixels, pos - 4 + (width * 4), quant_error, 3.0 / 16);
+      addToPixel(pixels, pos + (width * 4), quant_error, 5.0 / 16);
+      addToPixel(pixels, pos + 4 + (width * 4), quant_error, 1.0 / 16);
     }
+  }
 
-    ctx.putImageData(imgData, 0, 0);
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function convert() {
+  if (!originalImage) {
+    alert("Por favor, envie uma imagem primeiro!");
+    return;
+  }
+
+  redrawToEditedCanvas();
+
+  const width = 800, height = 480;
+  const ctx = document.getElementById('editedCanvas').getContext('2d');
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const pixels = imgData.data;
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    const r = pixels[i];
+    const g = pixels[i + 1];
+    const b = pixels[i + 2];
+
+    const newColor = find_closest_palette_color(r, g, b);
+
+    pixels[i] = newColor[0];
+    pixels[i + 1] = newColor[1];
+    pixels[i + 2] = newColor[2];
+    pixels[i + 3] = 255;
+  }
+
+  ctx.putImageData(imgData, 0, 0);
 }
 
 	
