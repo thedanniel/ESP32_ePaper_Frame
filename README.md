@@ -1,5 +1,5 @@
 # ESP32_ePaper_Frame
-This fork tries to create a Smart E-Paper frame controlled over wifi, using ESP32-S3 and 7-color AceP 7.3inch waveshare E-Ink display.
+This is a fork for a Smart E-Paper frame controlled over wifi, using ESP32-S3 and 7-color AceP 7.3inch waveshare E-Ink display.
 
 ![Demo Image 1](https://raw.githubusercontent.com/dani3lwinter/ESP32_ePaper_Frame/master/readme%20images/img1.jpg)
 
@@ -14,12 +14,12 @@ and **AsyncTCP** is a dependency for the ESPAsyncWebServer.
 Clone/download both libraries and save them to your Arduino libraries folder (usually located on _C:\\Users\\%USERPROFILE%\\Documents\\Arduino\\libraries_)
 
 ### Hardware
-- ESP32 microcontroller
+- ESP32-S3 microcontroller
 - 7.3inch E-Ink display with driver board for ESP32 
 ([Waveshare](https://www.waveshare.com/7.3inch-e-paper-hat-f.htm)).
 
 ## Installation
-1. Open *Smart_ePaper_Frame.ino* file with Arduino.
+1. Open *Smart_ePaper_Frame_SPIFFS.ino* file with Arduino.
 2. Upload the data folder using *ESP32 Filesystem Uploader* ([Tutorial](https://randomnerdtutorials.com/install-esp32-filesystem-uploader-arduino-ide/)).
 3. Upload the code to your ESP32 board.
 
