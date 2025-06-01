@@ -17,6 +17,7 @@ Clone/download both libraries and save them to your Arduino libraries folder (us
 - ESP32-S3 microcontroller
 - 7.3inch E-Ink display with driver board for ESP32 
 ([Waveshare](https://www.waveshare.com/7.3inch-e-paper-hat-f.htm)).
+- DESPI-C73 E-ink controller
 
 ## Installation
 1. Open *Smart_ePaper_Frame_SPIFFS.ino* file with Arduino.
