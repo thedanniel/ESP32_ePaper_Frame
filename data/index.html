@@ -58,8 +58,8 @@
   <div style="margin-top: 16px;">
     <button class="red-button" onclick="dither()">Dither</button>
     <button class="red-button" onclick="stretchToFit()">Esticar para caber</button>
-    <button class="red-button" onclick="zoomImage(1.1)">Zoom In</button>
-    <button class="red-button" onclick="zoomImage(0.9)">Zoom Out</button>
+    <button class="red-button" onclick="zoomImage(1.1)">Aumentar</button>
+    <button class="red-button" onclick="zoomImage(0.9)">Diminuir</button>
     <button class="red-button" onclick="rotateImage(-90)">⟲ Rotacionar Esquerda</button>
     <button class="red-button" onclick="rotateImage(90)">⟳ Rotacionar Direita</button>
 
@@ -104,31 +104,31 @@
 </div>
 
 
-  <script>
+<script>
     let currentScale = 1.0;
     let originalImage = null;
 	let currentRotation = 0; // in degrees
 	let offsetX = 0;
 	let offsetY = 0;
 
-const input = document.getElementById('inputFile');
-input.addEventListener('change', handleFiles);
+	const input = document.getElementById('inputFile');
+	input.addEventListener('change', handleFiles);
 
-function handleFiles(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+	function handleFiles(e) {
+	  const file = e.target.files[0];
+	  if (!file) return;
 
-  const img = new Image();
-  img.onload = function () {
-    originalImage = img;    // set global once loaded
-    currentScale = 1.0;
-    currentRotation = 0;
-    offsetX = 0;
-    offsetY = 0;
-    drawImage(originalImage, currentScale);
-  };
-  img.src = URL.createObjectURL(file);  // set src AFTER onload handler
-}
+	  const img = new Image();
+	  img.onload = function () {
+		originalImage = img;    // set global once loaded
+		currentScale = 1.0;
+		currentRotation = 0;
+		offsetX = 0;
+		offsetY = 0;
+		drawImage(originalImage, currentScale);
+	  };
+	  img.src = URL.createObjectURL(file);  // set src AFTER onload handler
+	}
 
 function drawImage(img, scale) {
   const ctxOrigin = document.getElementById('originalCanvas').getContext('2d');
@@ -143,7 +143,16 @@ function drawImage(img, scale) {
   ctxEdited.setTransform(1, 0, 0, 1, 0, 0);
 
   ctxOrigin.clearRect(0, 0, canvasWidth, canvasHeight);
-  ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  // Fill white background on edited canvas BEFORE clearing
+  ctxEdited.fillStyle = "white";
+  ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight); // Remove this line or move below fillRect to avoid clearing white.
+
+  // Actually, you should NOT clear after filling white. So remove clearRect for ctxEdited.
+
+  ctxEdited.fillStyle = "white";
+  ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
 
   ctxOrigin.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
   ctxEdited.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
@@ -161,6 +170,7 @@ function drawImage(img, scale) {
   ctxOrigin.restore();
   ctxEdited.restore();
 }
+
 
 // Example usage in zoomImage (same for rotateImage, moveImage)
 function zoomImage(factor) {
@@ -209,6 +219,8 @@ function stretchToFit() {
   );
 
   ctx.restore();
+  
+  currentScale = scale;
 }
 
 
@@ -260,6 +272,10 @@ var PALETTE = [
 ];
 
 	function uploadImage(){
+	if (!originalImage) {
+		showCustomPopup();
+		return;
+	  }
 		console.log("uploadImage");
 		
 		/*bytesArray = new Uint8Array(pixDataArray);
@@ -363,6 +379,10 @@ function addToPixel(pixels, pos, quant_error, fraction) {
 }
 
 function dither() {
+	if (!originalImage) {
+		alert("Por favor, envie uma imagem primeiro!");
+		return;
+	 }
     const R = 0, G = 1, B = 2, A = 3;
     const width = 800, height = 480;
 
@@ -438,7 +458,52 @@ function dither() {
 			ctxEdited.drawImage(img, 0, 0, img.width, img.height, offsetX, offsetY, newWidth, newHeight);
 		};
 	});
+	
+function showCustomPopup() {
+  document.getElementById('customModal').style.display = 'flex';
+}
+
+function closeCustomPopup() {
+  document.getElementById('customModal').style.display = 'none';
+}
+
+function onModalOk() {
+  closeCustomPopup();
+}
+
+function onModalClear() {
+  closeCustomPopup();
+  console.log("Clearing screen");
+  
+  const ctx = document.getElementById('editedCanvas').getContext('2d');
+    
+    // Fill with white before dithering to prevent black bg
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 800, 480);
+		
+		/*bytesArray = new Uint8Array(pixDataArray);
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', '/post',true);
+		xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+		xhr.send(bytesArray);*/
+		
+		websocket = new WebSocket("ws://" + location.hostname +"/test");
+		websocket.onopen = function(evt) { onOpen(evt) };
+		websocket.onclose = function(evt) { onClose(evt) };
+		websocket.onmessage = function(evt) { onMessage(evt) };
+		websocket.onerror = function(evt) { onError(evt) };
+}
 
 </script>
+
+	<div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+		 background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+	  <div style="background:white; padding:20px; border-radius:10px; text-align:center;">
+		<p>Nenhuma imagem enviada. O que você deseja fazer?</p>
+		<button onclick="onModalOk()" style="margin: 5px;">OK</button>
+		<button onclick="onModalClear()" style="margin: 5px;">Limpar tela</button>
+	  </div>
+	</div>
+
 </body>
 </html>
