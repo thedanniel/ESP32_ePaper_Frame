@@ -25,6 +25,24 @@
     .red-button:hover {
       box-shadow: none;
     }
+	
+	  .pad-button {
+      width: 50px;
+      background-color: #cc0000;
+      color: white;
+      text-align: center;
+      display: inline-block;
+      font-size: 16px;
+      padding: 14px 0px;
+      margin: 0px 4px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+      cursor: pointer;
+      border: 2px solid #800000;
+    }
+    .pad-button:hover {
+      box-shadow: none;
+    }
 
     th, td {
       padding: 10px 4px;
@@ -61,15 +79,16 @@
     <button class="red-button" onclick="stretchToFit()">Esticar para caber</button>
     <button class="red-button" onclick="zoomImage(1.1)">Aumentar</button>
     <button class="red-button" onclick="zoomImage(0.9)">Diminuir</button>
-    <button class="red-button" onclick="rotateImage(-90)">⟲ Rotacionar Esquerda</button>
-    <button class="red-button" onclick="rotateImage(90)">⟳ Rotacionar Direita</button>
+    <button class="red-button" onclick="rotateImage(-90)">⟲ Girar para a esquerda</button>
+    <button class="red-button" onclick="rotateImage(90)">⟳ Girar para a direita</button>
+	<button class="red-button" onclick="resetImage()">🔄 Resetar</button>
 
     <!-- D-Pad -->
     <style>
   .dpad-container {
     display: inline-grid;
-    grid-template-columns: 60px 60px 60px;
-    grid-template-rows: 60px 60px 60px;
+    grid-template-columns: 45px 45px 45px;
+    grid-template-rows: 45px 45px 45px;
     gap: 8px;
     justify-content: center;
     align-items: center;
@@ -94,14 +113,14 @@
 	</style>
 
 	<div class="dpad-container">
-	  <button class="red-button dpad-up" onclick="moveImage(0, -10)">⬆</button>
-	  <button class="red-button dpad-left" onclick="moveImage(-10, 0)">⬅</button>
-	  <button class="red-button dpad-right" onclick="moveImage(10, 0)">➡</button>
-	  <button class="red-button dpad-down" onclick="moveImage(0, 10)">⬇</button>
+	  <button class="pad-button dpad-up" onclick="moveImage(0, -10)">⬆</button>
+	  <button class="pad-button dpad-left" onclick="moveImage(-10, 0)">⬅</button>
+	  <button class="pad-button dpad-right" onclick="moveImage(10, 0)">➡</button>
+	  <button class="pad-button dpad-down" onclick="moveImage(0, 10)">⬇</button>
 	</div>
 
   <!-- Botão final: Enviar -->
-  <button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Enviar para porta-retrato</button>
+  <button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Enviar imagem para porta-retrato</button>
 </div>
 
 
@@ -199,14 +218,18 @@ function stretchToFit() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-  // Fit image to canvas
-  const scaleWidth = canvasWidth / originalImage.width;
-  const scaleHeight = canvasHeight / originalImage.height;
+  // Verifique se a imagem está rotacionada em 90 ou 270 graus
+  const rotated = (Math.abs(currentRotation) % 180 === 90);
+  const imgWidth = rotated ? originalImage.height : originalImage.width;
+  const imgHeight = rotated ? originalImage.width : originalImage.height;
+
+  const scaleWidth = canvasWidth / imgWidth;
+  const scaleHeight = canvasHeight / imgHeight;
   const scale = Math.min(scaleWidth, scaleHeight);
   const newWidth = originalImage.width * scale;
   const newHeight = originalImage.height * scale;
 
-  // Apply rotation and center
+  // Aplicar rotação e centralizar
   ctx.translate(canvasWidth / 2, canvasHeight / 2);
   const radians = currentRotation * Math.PI / 180;
   ctx.rotate(radians);
@@ -220,9 +243,13 @@ function stretchToFit() {
   );
 
   ctx.restore();
-  
+
+  // Atualizar escala global
   currentScale = scale;
+  offsetX = 0;
+  offsetY = 0;
 }
+
 
 
 	function rotateImage(degrees) {
@@ -403,6 +430,18 @@ function redrawToEditedCanvas() {
   ctxEdited.restore();
 }
 
+function resetImage() {
+  if (!originalImage) {
+    alert("Por favor, envie uma imagem primeiro!");
+    return;
+  }
+
+  currentScale = 1.0;
+  currentRotation = 0;
+  offsetX = 0;
+  offsetY = 0;
+  drawImage(originalImage, currentScale);
+}
 
 function dither() {
   if (!originalImage) {
