@@ -423,8 +423,8 @@
         }
 		
 
-		const contrastSlider = document.getElementById('contrastSlider');
-		const contrastValue = document.getElementById('contrastValue');
+		var contrastValue = document.getElementById('contrastValue');
+		var contrastSlider = document.getElementById('contrastSlider');
 
 			contrastSlider.addEventListener('input', () => {
 			contrastValue.textContent = contrastSlider.value;
@@ -438,6 +438,22 @@
 			pixels[i + 2] = clamp(factor * (pixels[i + 2] - 128) + 128); // Blue
 		  }
 		}
+		
+		contrastSlider.addEventListener('input', () => {
+			contrastValue.textContent = contrastSlider.value;
+			
+			if (!originalImage) return;
+			
+			// First draw the original image (respecting current scale, rotation, etc.)
+			redrawToEditedCanvas();
+			
+			// Then apply contrast to it
+			const ctx = document.getElementById('editedCanvas').getContext('2d');
+			const imgData = ctx.getImageData(0, 0, 800, 480);
+			applyContrast(imgData.data, parseInt(contrastSlider.value));
+			ctx.putImageData(imgData, 0, 0);
+		});
+
 
 		function clamp(value) {
 		  return Math.max(0, Math.min(255, value));
