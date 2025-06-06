@@ -125,6 +125,12 @@
 		  <input type="range" id="contrastSlider" min="-100" max="100" value="0" step="1" style="width: 300px;" />
 		  <span id="contrastValue">0</span>
 		</div>
+		
+		<div style="margin: 16px auto; text-align:center;">
+		  <label for="brightnessSlider"><strong>Brilho:</strong></label>
+		  <input type="range" id="brightnessSlider" min="-100" max="100" value="0" step="1" style="width: 300px;" />
+		  <span id="brightnessValue">0</span>
+		</div>
 
         <!-- Botão final: Enviar -->
         <button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Enviar imagem para porta-retrato</button>
@@ -333,6 +339,7 @@
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
 		  applyContrast(pixels, parseInt(contrastSlider.value));
+		  applyBrightness(pixels, parseInt(brightnessSlider.value));
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const pos = (y * width + x) * 4;
@@ -370,6 +377,7 @@
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
 		  applyContrast(pixels, parseInt(contrastSlider.value));
+		  applyBrightness(pixels, parseInt(brightnessSlider.value));;
           for (let i = 0; i < pixels.length; i += 4) {
             const r = pixels[i];
             const g = pixels[i + 1];
@@ -395,6 +403,7 @@
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
 		  applyContrast(pixels, parseInt(contrastSlider.value));
+		  applyBrightness(pixels, parseInt(brightnessSlider.value));
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4;
@@ -439,6 +448,10 @@
 		  }
 		}
 		
+		function clamp(value) {
+		  return Math.max(0, Math.min(255, value));
+		}
+		
 		contrastSlider.addEventListener('input', () => {
 			contrastValue.textContent = contrastSlider.value;
 			
@@ -454,10 +467,45 @@
 			ctx.putImageData(imgData, 0, 0);
 		});
 
-
-		function clamp(value) {
-		  return Math.max(0, Math.min(255, value));
+		function applyBrightness(pixels, brightness) {
+		  for (let i = 0; i < pixels.length; i += 4) {
+			pixels[i] = clamp(pixels[i] + brightness);     // Red
+			pixels[i + 1] = clamp(pixels[i + 1] + brightness); // Green
+			pixels[i + 2] = clamp(pixels[i + 2] + brightness); // Blue
+		  }
 		}
+
+		contrastSlider.addEventListener('input', () => {
+		  contrastValue.textContent = contrastSlider.value;
+		  
+		  if (!originalImage) return;
+		  
+		  redrawToEditedCanvas();
+		  
+		  const ctx = document.getElementById('editedCanvas').getContext('2d');
+		  const imgData = ctx.getImageData(0, 0, 800, 480);
+		  applyContrast(imgData.data, parseInt(contrastSlider.value));
+		  ctx.putImageData(imgData, 0, 0);
+		});
+
+		var brightnessValue = document.getElementById('brightnessValue');
+		var brightnessSlider = document.getElementById('brightnessSlider');
+
+		brightnessSlider.addEventListener('input', () => {
+		  brightnessValue.textContent = brightnessSlider.value;
+		  
+		  if (!originalImage) return;
+		  
+		  redrawToEditedCanvas();
+		  
+		  const ctx = document.getElementById('editedCanvas').getContext('2d');
+		  const imgData = ctx.getImageData(0, 0, 800, 480);
+		  
+		  applyContrast(imgData.data, parseInt(contrastSlider.value)); // Always apply contrast first
+		  applyBrightness(imgData.data, parseInt(brightnessSlider.value)); // Then apply brightness
+		  
+		  ctx.putImageData(imgData, 0, 0);
+		});
 		
 		function stretchToFit() {
           if (!originalImage) {
@@ -511,17 +559,25 @@
           drawImage(originalImage, currentScale);
         }
 
-        function resetImage() {
-          if (!originalImage) {
-            alert("Por favor, envie uma imagem primeiro!");
-            return;
-          }
-          currentScale = 1.0;
-          currentRotation = 0;
-          offsetX = 0;
-          offsetY = 0;
-          drawImage(originalImage, currentScale);
-        }
+		function resetImage() {
+		  if (!originalImage) {
+			alert("Por favor, envie uma imagem primeiro!");
+			return;
+		  }
+		  currentScale = 1.0;
+		  currentRotation = 0;
+		  offsetX = 0;
+		  offsetY = 0;
+		  
+		  // Reset sliders
+		  contrastSlider.value = 0;
+		  contrastValue.textContent = '0';
+		  
+		  brightnessSlider.value = 0;
+		  brightnessValue.textContent = '0';
+		  
+		  drawImage(originalImage, currentScale);
+		}
 		
 		function initWebSocket() {}
 
