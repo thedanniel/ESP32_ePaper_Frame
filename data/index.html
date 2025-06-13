@@ -61,17 +61,14 @@
   <body>
     <div style="max-width: 100%; margin: 8px; text-align:center;">
       <h1>Porta-Retrato Digital</h1>
-      <!-- Somente o botão de upload aqui -->
       <label class="red-button">
         <input type="file" id="inputFile" />Carregar imagem </label>
-      <!-- CANVAS -->
       <div style="width: 100%; display: none;">
         <canvas style="width: 100%;" width="800" height="480" id="originalCanvas"></canvas>
       </div>
       <div style="width: 100%; border: 3px solid black; border-radius: 5px; background:white; margin-top: 16px;">
         <canvas style="width: 100%;" width="800" height="480" id="editedCanvas"></canvas>
       </div>
-      <!-- BOTÕES abaixo do canvas -->
       <div style="margin-top: 16px;">
         <button class="red-button" onclick="dither()">Dither</button>
         <button class="red-button" onclick="convert()">Converter cores</button>
@@ -82,7 +79,6 @@
         <button class="red-button" onclick="rotateImage(-5)">⟲ Girar para a esquerda</button>
         <button class="red-button" onclick="rotateImage(5)">⟳ Girar para a direita</button>
         <button class="red-button" onclick="resetImage()">🔄 Resetar</button>
-        <!-- D-Pad -->
         <style>
           .dpad-container {
             display: inline-grid;
@@ -128,11 +124,14 @@
 		
 		<div style="margin: 16px auto; text-align:center;">
 		  <label for="brightnessSlider"><strong>Brilho:</strong></label>
-		  <input type="range" id="brightnessSlider" min="-100" max="100" value="0" step="1" style="width: 300px;" />
-		  <span id="brightnessValue">0</span>
+		  <input type="range" id="brightnessSlider" min="-100" max="100" value="1" step="0.1" style="width: 300px;" />
+		  <span id="brightnessValue">1</span>
 		</div>
-
-        <!-- Botão final: Enviar -->
+		<div style="margin: 16px auto; text-align:center;">
+		  <label for="brightnessSlider"><strong>Gamma:</strong></label>
+		  <input type="range" id="gammaSlider" min="0.1" max="5.0" value="1.0" step="0.1" style="width: 300px;" />
+		  <span id="gammaValue">1.0</span>
+		</div>
         <button onclick="uploadImage()" class="red-button" style="width: 100%; margin: 16px 2px 5px;">Enviar imagem para porta-retrato</button>
       </div>
       <script>
@@ -155,7 +154,6 @@
           "255,165,0": 6 // Orange
         };
 		
-        // Update rbg2bit to map RGB values to indices
         function rbg2bit(r, g, b) {
           const key = `${r},${g},${b}`;
           return COLOR_MAP[key] !== undefined ? COLOR_MAP[key] : 0; // Default to black if undefined
@@ -219,8 +217,6 @@
           // Fill white background on edited canvas BEFORE clearing
           ctxEdited.fillStyle = "white";
           ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
-          ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight); // Remove this line or move below fillRect to avoid clearing white.
-          // Actually, you should NOT clear after filling white. So remove clearRect for ctxEdited.
           ctxEdited.fillStyle = "white";
           ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
           ctxOrigin.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
@@ -235,7 +231,7 @@
           ctxOrigin.restore();
           ctxEdited.restore();
         }
-        // Example usage in zoomImage (same for rotateImage, moveImage)
+
         function zoomImage(factor) {
           if (!originalImage) {
             alert("Por favor, envie uma imagem primeiro!");
@@ -244,7 +240,6 @@
           currentScale *= factor;
           drawImage(originalImage, currentScale);
         }
-        // For functions like stretchToFit(), just use originalImage directly instead of creating new Image objects:
 
         function uploadImage() {
           if (!originalImage) {
@@ -311,7 +306,6 @@
           ctxEdited.save();
           ctxEdited.setTransform(1, 0, 0, 1, 0, 0);
           ctxEdited.clearRect(0, 0, canvasWidth, canvasHeight);
-          // Fill white background
           ctxEdited.fillStyle = "white";
           ctxEdited.fillRect(0, 0, canvasWidth, canvasHeight);
           ctxEdited.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
@@ -323,7 +317,7 @@
           ctxEdited.restore();
         }
 
-        function dither() {
+function dither() {
           if (!originalImage) {
             alert("Por favor, envie uma imagem primeiro!");
             return;
@@ -338,8 +332,10 @@
           const ctx = document.getElementById('editedCanvas').getContext('2d');
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
-		  applyContrast(pixels, parseInt(contrastSlider.value));
-		  applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyContrast(pixels, parseInt(contrastSlider.value));
+          applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyGamma(pixels, parseFloat(gammaSlider.value)); // Apply gamma before dithering
+
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const pos = (y * width + x) * 4;
@@ -376,8 +372,9 @@
           const ctx = document.getElementById('editedCanvas').getContext('2d');
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
-		  applyContrast(pixels, parseInt(contrastSlider.value));
-		  applyBrightness(pixels, parseInt(brightnessSlider.value));;
+          applyContrast(pixels, parseInt(contrastSlider.value));
+          applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyGamma(pixels, parseFloat(gammaSlider.value)); // Apply gamma before converting
           for (let i = 0; i < pixels.length; i += 4) {
             const r = pixels[i];
             const g = pixels[i + 1];
@@ -402,17 +399,16 @@
           const ctx = document.getElementById('editedCanvas').getContext('2d');
           const imgData = ctx.getImageData(0, 0, width, height);
           const pixels = imgData.data;
-		  applyContrast(pixels, parseInt(contrastSlider.value));
-		  applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyContrast(pixels, parseInt(contrastSlider.value));
+          applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyGamma(pixels, parseFloat(gammaSlider.value)); // Apply gamma before dithering
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const i = (y * width + x) * 4;
-              // Convert to grayscale
               const oldPixel = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
               const newPixel = oldPixel < 128 ? 0 : 255;
               const error = oldPixel - newPixel;
               pixels[i] = pixels[i + 1] = pixels[i + 2] = newPixel;
-              // Distribute the error to neighboring pixels (Floyd–Steinberg)
               const distribute = (dx, dy, factor) => {
                 const ni = ((y + dy) * width + (x + dx)) * 4;
                 if (x + dx >= 0 && x + dx < width && y + dy < height && ni >= 0 && ni < pixels.length) {
@@ -430,15 +426,23 @@
           }
           ctx.putImageData(imgData, 0, 0);
         }
-		
 
-		var contrastValue = document.getElementById('contrastValue');
-		var contrastSlider = document.getElementById('contrastSlider');
+        function applyFilters() {
+          if (!originalImage) return;
 
-			contrastSlider.addEventListener('input', () => {
-			contrastValue.textContent = contrastSlider.value;
-		});
-		  
+          redrawToEditedCanvas(); // Start with the fresh, un-dithered image
+
+          const ctx = document.getElementById('editedCanvas').getContext('2d');
+          const imgData = ctx.getImageData(0, 0, 800, 480);
+          const pixels = imgData.data;
+
+          applyContrast(pixels, parseInt(contrastSlider.value));
+          applyBrightness(pixels, parseInt(brightnessSlider.value));
+          applyGamma(pixels, parseFloat(gammaSlider.value)); // Apply gamma
+
+          ctx.putImageData(imgData, 0, 0);
+        }
+				  
 		function applyContrast(pixels, contrast) {
 		  const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 		  for (let i = 0; i < pixels.length; i += 4) {
@@ -452,20 +456,13 @@
 		  return Math.max(0, Math.min(255, value));
 		}
 		
-		contrastSlider.addEventListener('input', () => {
-			contrastValue.textContent = contrastSlider.value;
-			
-			if (!originalImage) return;
-			
-			// First draw the original image (respecting current scale, rotation, etc.)
-			redrawToEditedCanvas();
-			
-			// Then apply contrast to it
-			const ctx = document.getElementById('editedCanvas').getContext('2d');
-			const imgData = ctx.getImageData(0, 0, 800, 480);
-			applyContrast(imgData.data, parseInt(contrastSlider.value));
-			ctx.putImageData(imgData, 0, 0);
-		});
+        var contrastValue = document.getElementById('contrastValue');
+        var contrastSlider = document.getElementById('contrastSlider');
+
+        contrastSlider.addEventListener('input', () => {
+          contrastValue.textContent = contrastSlider.value;
+          applyFilters();
+        });
 
 		function applyBrightness(pixels, brightness) {
 		  for (let i = 0; i < pixels.length; i += 4) {
@@ -475,37 +472,30 @@
 		  }
 		}
 
-		contrastSlider.addEventListener('input', () => {
-		  contrastValue.textContent = contrastSlider.value;
-		  
-		  if (!originalImage) return;
-		  
-		  redrawToEditedCanvas();
-		  
-		  const ctx = document.getElementById('editedCanvas').getContext('2d');
-		  const imgData = ctx.getImageData(0, 0, 800, 480);
-		  applyContrast(imgData.data, parseInt(contrastSlider.value));
-		  ctx.putImageData(imgData, 0, 0);
-		});
+        var brightnessValue = document.getElementById('brightnessValue');
+        var brightnessSlider = document.getElementById('brightnessSlider');
 
-		var brightnessValue = document.getElementById('brightnessValue');
-		var brightnessSlider = document.getElementById('brightnessSlider');
+        brightnessSlider.addEventListener('input', () => {
+          brightnessValue.textContent = brightnessSlider.value;
+          applyFilters();
+        });
+		
+		function applyGamma(pixels, gamma) {
+            const invGamma = 1 / gamma;
+            for (let i = 0; i < pixels.length; i += 4) {
+                pixels[i] = clamp(255 * Math.pow(pixels[i] / 255, invGamma));     // Red
+                pixels[i + 1] = clamp(255 * Math.pow(pixels[i + 1] / 255, invGamma)); // Green
+                pixels[i + 2] = clamp(255 * Math.pow(pixels[i + 2] / 255, invGamma)); // Blue
+            }
+        }
+		
+		var gammaValue = document.getElementById('gammaValue');
+        var gammaSlider = document.getElementById('gammaSlider');
 
-		brightnessSlider.addEventListener('input', () => {
-		  brightnessValue.textContent = brightnessSlider.value;
-		  
-		  if (!originalImage) return;
-		  
-		  redrawToEditedCanvas();
-		  
-		  const ctx = document.getElementById('editedCanvas').getContext('2d');
-		  const imgData = ctx.getImageData(0, 0, 800, 480);
-		  
-		  applyContrast(imgData.data, parseInt(contrastSlider.value)); // Always apply contrast first
-		  applyBrightness(imgData.data, parseInt(brightnessSlider.value)); // Then apply brightness
-		  
-		  ctx.putImageData(imgData, 0, 0);
-		});
+        gammaSlider.addEventListener('input', () => {
+            gammaValue.textContent = gammaSlider.value;
+            applyFilters();
+        });
 		
 		function stretchToFit() {
           if (!originalImage) {
@@ -519,8 +509,7 @@
           ctx.save();
           ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
           ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-          // Verifique se a imagem está rotacionada em 90 ou 270 graus
-          const rotated = (Math.abs(currentRotation) % 180 === 90);
+          const rotated = (Math.abs(currentRotation) % 180 === 90); // Verifique se a imagem está rotacionada em 90 ou 270 graus
           const imgWidth = rotated ? originalImage.height : originalImage.width;
           const imgHeight = rotated ? originalImage.width : originalImage.height;
           const scaleWidth = canvasWidth / imgWidth;
@@ -528,13 +517,11 @@
           const scale = Math.min(scaleWidth, scaleHeight);
           const newWidth = originalImage.width * scale;
           const newHeight = originalImage.height * scale;
-          // Aplicar rotação e centralizar
           ctx.translate(canvasWidth / 2, canvasHeight / 2);
           const radians = currentRotation * Math.PI / 180;
           ctx.rotate(radians);
           ctx.drawImage(originalImage, -newWidth / 2, -newHeight / 2, newWidth, newHeight);
           ctx.restore();
-          // Atualizar escala global
           currentScale = scale;
           offsetX = 0;
           offsetY = 0;
@@ -569,12 +556,14 @@
 		  offsetX = 0;
 		  offsetY = 0;
 		  
-		  // Reset sliders
 		  contrastSlider.value = 0;
 		  contrastValue.textContent = '0';
 		  
 		  brightnessSlider.value = 0;
 		  brightnessValue.textContent = '0';
+		  
+		  gammaSlider.value = 1;
+		  gammaValue.textContent = '1';
 		  
 		  drawImage(originalImage, currentScale);
 		}
@@ -619,7 +608,6 @@
           closeCustomPopup();
           console.log("Clearing screen");
           const ctx = document.getElementById('editedCanvas').getContext('2d');
-          // Fill with white before dithering to prevent black bg
           ctx.fillStyle = "white";
           ctx.fillRect(0, 0, 800, 480);
           /*bytesArray = new Uint8Array(pixDataArray);
