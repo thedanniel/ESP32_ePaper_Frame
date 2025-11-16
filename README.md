@@ -58,5 +58,5 @@ Clone/download both libraries and save them to your Arduino libraries folder (us
 
 ![Dithering](https://raw.githubusercontent.com/thedanniel/ESP32_ePaper_Frame/master/readme%20images/dithering.png)
 
-![Demo Image 3](https://raw.githubusercontent.com/dani3lwinter/ESP32_ePaper_Frame/master/readme%20images/img3.jpg)
+![Demo Image 3](https://raw.githubusercontent.com/thedanniel/ESP32_ePaper_Frame/master/readme%20images/img3.jpg)
 
