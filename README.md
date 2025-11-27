@@ -20,7 +20,7 @@ Clone/download both libraries and save them to your Arduino libraries folder (us
 - DESPI-C73 E-ink controller ([Good-Display](https://www.good-display.com/product/522.html)).
 
 ## Installation
-1. Open *Smart_ePaper_Frame_SPIFFS.ino* file with Arduino.
+1. Open *Smart_ePaper_Frame.ino* file with Arduino.
 2. Upload the data folder using *ESP32 LittleFS Uploader* ([Tutorial](https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/)).
 3. Upload the code to your ESP32 board.
 
