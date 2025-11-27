@@ -21,7 +21,7 @@ Clone/download both libraries and save them to your Arduino libraries folder (us
 
 ## Installation
 1. Open *Smart_ePaper_Frame_SPIFFS.ino* file with Arduino.
-2. Upload the data folder using *ESP32 Filesystem Uploader* ([Tutorial](https://randomnerdtutorials.com/install-esp32-filesystem-uploader-arduino-ide/)).
+2. Upload the data folder using *ESP32 LittleFS Uploader* ([Tutorial](https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/)).
 3. Upload the code to your ESP32 board.
 
 ## Usage
